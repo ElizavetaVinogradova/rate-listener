@@ -9,7 +9,7 @@ type Tick struct {
 	best_ask  float64
 }
 
-type TickInterface interface {
+type TickService interface {
 	Get() Tick
 	Post() Tick
 	Put() Tick

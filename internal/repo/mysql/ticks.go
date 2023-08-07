@@ -1,6 +1,7 @@
 package mysql
 
-type Tick struct {
+type TickDataBaseDTO struct {
+	id        int64
 	timestamp int64   //(BIGINT) - Unixtime в миллисекундах,
 	symbol    string  //(VARCHAR) - название инструментов,
 	best_bid  float64 //(DOUBLE) - цена предложения продажи,
