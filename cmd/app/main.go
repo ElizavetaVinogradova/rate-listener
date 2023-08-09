@@ -1,40 +1,31 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
-
-	"github.com/gorilla/websocket"
+	"rates-listener/internal/client/coinbase"
 )
 
 func main() {
 	url := "wss://ws-feed.exchange.coinbase.com"
-	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	defer conn.Close()
-
-	subscribeMsg := []byte(`{
-        "type": "subscribe",
-        "channels": [
-            {
-                "name": "ticker",
-                "product_ids": ["BTC-USD"]
-            }
-        ]
-    }`)
-	err = conn.WriteMessage(websocket.TextMessage, subscribeMsg)
-	if err != nil {
-		log.Println("write:", err)
-		return
-	}
+	client, _ := coinbase.NewCoinBaseClient(url)
+	defer client.Conn.Close()
 
 	for {
-		messageType, message, err := conn.ReadMessage()
+		messageType, message, err := client.Conn.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
 			return
 		}
 		log.Printf("Received message type %d: %s", messageType, message)
+
+		var tickDTO coinbase.TickClientDTO
+		err2 := json.Unmarshal(message, &tickDTO)
+		if err2 != nil {
+			fmt.Println("Unmarshalling failed:", err)
+			return
+		}
+
 	}
 }
