@@ -1,0 +1,19 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  start-db:
+    desc: "Start MySQL database"
+    cmds:
+      - docker-compose -f deploy/docker-compose.yml up -d 
+
+  install-migrate:
+    desc: "Install the migrate tool"
+    cmds:
+      - go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+  run-migrate:
+    desc: "Run database migration"
+    cmds:
+      - migrate -path ./schema -database 'mysql://user:1234@tcp(127.0.0.1:3306)/ticks' up
