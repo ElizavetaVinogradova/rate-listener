@@ -1,9 +1,92 @@
 package mysql
 
+import (
+	"fmt"
+	"rates-listener/internal/service"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
+)
+
+type TicksRepository struct {
+	db *sqlx.DB
+}
+
+type Config struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	DBName   string
+	SSLMode  string
+}
+
+func NewTickRepository(config Config) (*TicksRepository, error) {
+	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+		config.Username, config.Password, config.Host, config.Port, config.DBName))
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return &TicksRepository{db: db}, nil
+}
+
 type TickDataBaseDTO struct {
 	id        int64
 	timestamp int64   //(BIGINT) - Unixtime в миллисекундах,
 	symbol    string  //(VARCHAR) - название инструментов,
 	best_bid  float64 //(DOUBLE) - цена предложения продажи,
 	best_ask  float64 //(DOUBLE) - цена предложения покупки.
+}
+
+func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
+	ticksDB := mapTickSliceToTicksDTOSlice(ticks)
+
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare("INSERT INTO ticks (timestamp, symbol, best_bid, best_ask) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, tickDB := range ticksDB {
+		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.best_bid, tickDB.best_ask)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
+	var tickDB TickDataBaseDTO
+	tickDB.timestamp = tick.Timestamp
+	tickDB.symbol = tick.Symbol
+	tickDB.best_bid = tick.Best_bid
+	tickDB.best_ask = tick.Best_ask
+	return tickDB
+}
+
+func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
+	var ticksDB []TickDataBaseDTO
+	for _, tick := range ticks {
+		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
+	}
+	return ticksDB
 }

@@ -1,0 +1,13 @@
+port: "8000"
+
+db:
+    username: "user"
+    password: "1234"
+    host: "localhost"
+    port: "3306"
+    dbname: "ticks"
+    sslmode: "disable"
+
+service:
+    url: "wss://ws-feed.exchange.coinbase.com"
+    batchSize: 10
