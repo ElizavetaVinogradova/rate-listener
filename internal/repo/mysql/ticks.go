@@ -37,11 +37,10 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 }
 
 type TickDataBaseDTO struct {
-	id        int64
-	timestamp int64   //(BIGINT) - Unixtime в миллисекундах,
-	symbol    string  //(VARCHAR) - название инструментов,
-	best_bid  float64 //(DOUBLE) - цена предложения продажи,
-	best_ask  float64 //(DOUBLE) - цена предложения покупки.
+	timestamp int64
+	symbol    string
+	best_bid  float64
+	best_ask  float64
 }
 
 func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
@@ -74,6 +73,14 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	return nil
 }
 
+func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
+	var ticksDB []TickDataBaseDTO
+	for _, tick := range ticks {
+		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
+	}
+	return ticksDB
+}
+
 func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	var tickDB TickDataBaseDTO
 	tickDB.timestamp = tick.Timestamp
@@ -81,12 +88,4 @@ func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	tickDB.best_bid = tick.Best_bid
 	tickDB.best_ask = tick.Best_ask
 	return tickDB
-}
-
-func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
-	var ticksDB []TickDataBaseDTO
-	for _, tick := range ticks {
-		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
-	}
-	return ticksDB
 }

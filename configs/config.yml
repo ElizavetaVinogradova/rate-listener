@@ -1,4 +1,4 @@
-port: "8000"
+logLevel: "error"
 
 db:
     username: "user"
@@ -9,5 +9,7 @@ db:
     sslmode: "disable"
 
 service:
-    url: "wss://ws-feed.exchange.coinbase.com"
     batchSize: 10
+
+coinBaseClient:
+    url: "wss://ws-feed.exchange.coinbase.com"

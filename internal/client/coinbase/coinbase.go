@@ -39,7 +39,7 @@ func NewCoinBaseClient(url string) (*CoinBaseClient, error) {
 		conn.Close()
 		return &CoinBaseClient{}, err
 	}
-	_, _, err = conn.ReadMessage() //ignore the first message with request info
+	_, _, err = conn.ReadMessage() //read and ignore the very first message with request info
 	if err != nil {
 		conn.Close()
 		return &CoinBaseClient{}, err
@@ -53,7 +53,7 @@ func (c *CoinBaseClient) readMessage() (TickClientDTO, error) {
 	if err != nil {
 		return TickClientDTO{}, err
 	}
-	log.Printf("Received message type %d: %s", messageType, message)
+	log.Debugf("Received message type %d: %s", messageType, message)
 
 	tickDTO, err := UnmarshalResponse(message)
 	if err != nil {
