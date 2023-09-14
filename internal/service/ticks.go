@@ -17,19 +17,42 @@ type RatesRepository interface {
 	CreateBatch(ticks []Tick) error
 }
 
-type TickService struct {
-	ratesRepository RatesRepository
-	ratesProvider   RatesProvider
-	batchSize       int
+type RatesBrokerWtiter interface {
+	WriteBatch(ticks []Tick) error
 }
 
-func NewTickService(ratesRepository RatesRepository, ratesProvider RatesProvider, batchSize int) *TickService {
-	return &TickService{
-		ratesRepository: ratesRepository,
-		ratesProvider:   ratesProvider,
-		batchSize:       batchSize,
+type TickService struct {
+	ratesBrokerWtiter RatesBrokerWtiter
+	ratesRepository   RatesRepository
+	ratesProvider     RatesProvider
+	batchSize         int
+}
+
+func NewTickService(ratesBrokerWtiter RatesBrokerWtiter, ratesRepository RatesRepository, ratesProvider RatesProvider, batchSize int) *TickService { //тип возвращаемого значения - поинтер (заявление, что тип - поинтер)
+	return &TickService{ //взять поинтер на структуру (действие - взятие поинтера)
+		ratesBrokerWtiter: ratesBrokerWtiter,
+		ratesRepository:   ratesRepository,
+		ratesProvider:     ratesProvider,
+		batchSize:         batchSize,
 	}
 }
+
+//звездочка говорит о том, что метод вызывается на поинтерах на структуру. То есть, если там будет просто структура, то метод нельзя будет вызвать.
+//написала метод для поинтера, потому что в го принято делать управляющие структуры поинтерами
+// func (s *TickService) Run() {
+// 	for {
+// 		ticks, err := s.ratesProvider.GetTicksBatch(s.batchSize)
+// 		if err != nil {
+// 			log.Errorf("Couldn't get ticks from provider: %s", err)
+// 			continue
+// 		}
+
+// 		err = s.ratesRepository.CreateBatch(ticks)
+// 		if err != nil {
+// 			log.Errorf("Couldn't create batch: %s", err)
+// 		}
+// 	}
+// }
 
 func (s *TickService) Run() {
 	for {
@@ -39,9 +62,9 @@ func (s *TickService) Run() {
 			continue
 		}
 
-		err = s.ratesRepository.CreateBatch(ticks)
+		err = s.ratesBrokerWtiter.WriteBatch(ticks)
 		if err != nil {
-			log.Errorf("Couldn't creare batch: %s", err)
+			log.Errorf("Couldn't write batch: %s", err)
 		}
 	}
 }

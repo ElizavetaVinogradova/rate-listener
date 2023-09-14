@@ -9,7 +9,7 @@ import (
 )
 
 type TicksRepository struct {
-	db *sqlx.DB
+	db *sqlx.DB //указатель на экземпляр ДБ нужен, чтобы при передаче структуры в другие функции они могли изменять состояние именно этого экземпляра, а не его копии.
 }
 
 type Config struct {
@@ -21,7 +21,7 @@ type Config struct {
 	SSLMode  string
 }
 
-func NewTickRepository(config Config) (*TicksRepository, error) {
+func NewTickRepository(config Config) (*TicksRepository, error) { //звездочка у возвращаемого значения говорит о том, что из функции вернется указатель на адрес в памяти
 	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		config.Username, config.Password, config.Host, config.Port, config.DBName))
 	if err != nil {
@@ -33,7 +33,7 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 		return nil, err
 	}
 
-	return &TicksRepository{db: db}, nil
+	return &TicksRepository{db: db}, nil //амперсанд говорит о том, что тут возвращается указатель на созданный экземпляр. Указатель будет использоваться для внесения изменений в объект.
 }
 
 type TickDataBaseDTO struct {
