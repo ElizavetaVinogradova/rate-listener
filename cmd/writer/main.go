@@ -32,7 +32,7 @@ func main() {
 
 	viper.SetDefault("service.batchSize", 1)
 	batchSize := viper.GetInt("service.batchSize")
-	service.NewTickService(repository, client, batchSize).Run()
+	service.NewTickService(repository, client, batchSize).RunToKafka()
 }
 
 func buildMySqlConfig() mysql.Config {

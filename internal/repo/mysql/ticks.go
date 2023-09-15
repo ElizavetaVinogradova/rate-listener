@@ -73,7 +73,7 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	return nil
 }
 
-func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
+func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO { //todo to add the initial capacity for the slice
 	var ticksDB []TickDataBaseDTO
 	for _, tick := range ticks {
 		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
