@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"rates-listener/internal/brocker/kafka"
 	"rates-listener/internal/client/coinbase"
 	"rates-listener/internal/repo/mysql"
 	"rates-listener/internal/service"
@@ -23,7 +24,7 @@ func main() {
 		panic(fmt.Sprintf("Couldnt create CoinBase Client: %s", err))
 	}
 
-	repository, err := mysql.NewTickRepository(buildMySqlConfig())
+	broker := kafka.NewBrokerWriter([]string{"kafka-broker-1:9092", "kafka-broker-2:9092"}, "topic")
 
 	if err != nil {
 		panic(fmt.Sprintf("Couldnt create Repository: %s", err))
@@ -32,7 +33,7 @@ func main() {
 
 	viper.SetDefault("service.batchSize", 1)
 	batchSize := viper.GetInt("service.batchSize")
-	service.NewTickService(repository, client, batchSize).RunToKafka()
+	service.NewTickWriterService(client, broker, batchSize).RunToKafka()
 }
 
 func buildMySqlConfig() mysql.Config {
