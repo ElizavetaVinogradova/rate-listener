@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"rates-listener/internal/brocker/kafka"
 	"rates-listener/internal/client/coinbase"
-	"rates-listener/internal/repo/mysql"
 	"rates-listener/internal/service"
 
 	log "github.com/sirupsen/logrus"
@@ -23,34 +22,21 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Couldnt create CoinBase Client: %s", err))
 	}
-
-	broker := kafka.NewBrokerWriter([]string{"kafka-broker-1:9092", "kafka-broker-2:9092"}, "topic")
-
-	if err != nil {
-		panic(fmt.Sprintf("Couldnt create Repository: %s", err))
-	}
 	defer client.Conn.Close()
+
+	broker := kafka.NewBrokerWriter([]string{"localhost:9093"}, "ticks")
 
 	viper.SetDefault("service.batchSize", 1)
 	batchSize := viper.GetInt("service.batchSize")
 	service.NewTickWriterService(client, broker, batchSize).RunToKafka()
 }
 
-func buildMySqlConfig() mysql.Config {
-	return mysql.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		Password: viper.GetString("db.password"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-	}
-}
-
 func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
+	//viper.AddConfigPath("configs")
+	// viper.AddConfigPath("./configs")
+	// viper.SetConfigName("config")
+	// viper.SetConfigType("yml")
+    viper.SetConfigFile("C:\\Users\\liza\\GoProjects\\rates-listener\\configs\\config.yml")
 	return viper.ReadInConfig()
 }
 
