@@ -31,8 +31,8 @@ func (dto *TickClientDTO) toServiceTick() service.Tick {
 	var tick service.Tick
 	tick.Timestamp = dto.Time.Unix()
 	tick.Symbol = dto.ProductID
-	tick.Best_bid, _ = strconv.ParseFloat(dto.BestBid, 64)
-	tick.Best_ask, _ = strconv.ParseFloat(dto.BestAsk, 64)
+	tick.BestBid, _ = strconv.ParseFloat(dto.BestBid, 64)
+	tick.BestAsk, _ = strconv.ParseFloat(dto.BestAsk, 64)
 	return tick
 }
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"rates-listener/internal/client/coinbase"
+	"rates-listener/internal/brocker/kafka"
 	"rates-listener/internal/repo/mysql"
 	"rates-listener/internal/service"
 
@@ -17,22 +17,17 @@ func main() {
 	}
 	setupLogging()
 
-	url := viper.GetString("coinBaseClient.url")
-	client, err := coinbase.NewCoinBaseClient(url)
-	if err != nil {
-		panic(fmt.Sprintf("Couldnt create CoinBase Client: %s", err))
-	}
+	broker := kafka.NewBrokerReader([]string{"localhost:9093"}, "ticks")
 
 	repository, err := mysql.NewTickRepository(buildMySqlConfig())
 
 	if err != nil {
 		panic(fmt.Sprintf("Couldnt create Repository: %s", err))
 	}
-	defer client.Conn.Close()
 
 	viper.SetDefault("service.batchSize", 1)
 	batchSize := viper.GetInt("service.batchSize")
-	service.NewTickService(repository, client, batchSize).Run()
+	service.NewTickReaderService(broker, repository, batchSize).RunFromKafka()
 }
 
 func buildMySqlConfig() mysql.Config {
@@ -47,7 +42,7 @@ func buildMySqlConfig() mysql.Config {
 }
 
 func initConfig() error {
-	viper.AddConfigPath("configs")
+	viper.AddConfigPath("../../configs")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yml")
 	return viper.ReadInConfig()

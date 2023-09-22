@@ -5,14 +5,14 @@ import (
 )
 
 type TickKafkaDTO struct {
-	timestamp int64
-	symbol    string
-	best_bid  float64
-	best_ask  float64
+	Timestamp int64
+	Symbol    string
+	BestBid   float64
+	BestAsk   float64
 }
 
 func MarshalMessage(ticks []TickKafkaDTO) ([]byte, error) {
-	message, err := json.Marshal(ticks)
+	message, err := json.Marshal(&ticks)
 	if err != nil {
 		return nil, err
 	}

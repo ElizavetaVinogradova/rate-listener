@@ -32,11 +32,9 @@ func main() {
 }
 
 func initConfig() error {
-	//viper.AddConfigPath("configs")
-	// viper.AddConfigPath("./configs")
-	// viper.SetConfigName("config")
-	// viper.SetConfigType("yml")
-    viper.SetConfigFile("C:\\Users\\liza\\GoProjects\\rates-listener\\configs\\config.yml")
+	viper.AddConfigPath("../../configs")
+	viper.SetConfigName("config")
+	viper.SetConfigType("yml")
 	return viper.ReadInConfig()
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type TicksRepository struct {
-	db *sqlx.DB //указатель на экземпляр ДБ нужен, чтобы при передаче структуры в другие функции они могли изменять состояние именно этого экземпляра, а не его копии.
+	db *sqlx.DB
 }
 
 type Config struct {
@@ -21,7 +21,7 @@ type Config struct {
 	SSLMode  string
 }
 
-func NewTickRepository(config Config) (*TicksRepository, error) { //звездочка у возвращаемого значения говорит о том, что из функции вернется указатель на адрес в памяти
+func NewTickRepository(config Config) (*TicksRepository, error) {
 	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		config.Username, config.Password, config.Host, config.Port, config.DBName))
 	if err != nil {
@@ -33,14 +33,14 @@ func NewTickRepository(config Config) (*TicksRepository, error) { //звездо
 		return nil, err
 	}
 
-	return &TicksRepository{db: db}, nil //амперсанд говорит о том, что тут возвращается указатель на созданный экземпляр. Указатель будет использоваться для внесения изменений в объект.
+	return &TicksRepository{db: db}, nil
 }
 
 type TickDataBaseDTO struct {
 	timestamp int64
 	symbol    string
-	best_bid  float64
-	best_ask  float64
+	bestBid   float64
+	bestAsk   float64
 }
 
 func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
@@ -59,7 +59,7 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	defer stmt.Close()
 
 	for _, tickDB := range ticksDB {
-		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.best_bid, tickDB.best_ask)
+		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.bestBid, tickDB.bestAsk)
 		if err != nil {
 			return err
 		}
@@ -73,8 +73,8 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	return nil
 }
 
-func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO { //todo to add the initial capacity for the slice
-	var ticksDB []TickDataBaseDTO
+func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
+	ticksDB := make([]TickDataBaseDTO, 0, len(ticks))
 	for _, tick := range ticks {
 		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
 	}
@@ -85,7 +85,7 @@ func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	var tickDB TickDataBaseDTO
 	tickDB.timestamp = tick.Timestamp
 	tickDB.symbol = tick.Symbol
-	tickDB.best_bid = tick.Best_bid
-	tickDB.best_ask = tick.Best_ask
+	tickDB.bestBid = tick.BestBid
+	tickDB.bestAsk = tick.BestAsk
 	return tickDB
 }
