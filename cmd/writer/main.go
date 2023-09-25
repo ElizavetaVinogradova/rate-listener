@@ -24,8 +24,9 @@ func main() {
 	defer client.Conn.Close()
 
 	broker := kafka.NewBrokerWriter([]string{"localhost:9093"}, "ticks")
+	defer broker.Close()
 
 	viper.SetDefault("service.batchSize", 1)
 	batchSize := viper.GetInt("service.batchSize")
-	service.NewTickWriterService(client, broker, batchSize).RunToKafka()
+	service.NewTickWriterService(client, broker, batchSize).RunWritingToBroker()
 }
