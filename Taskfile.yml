@@ -6,8 +6,8 @@ tasks:
   start-db:
     desc: "Start MySQL database"
     cmds:
-      - docker-compose -f deploy\d-c-mysql.yml up -d 
-      #- docker-compose -f deploy\d-c-kafka.yml up -d 
+      - docker-compose -f deploy\docker-compose-mysql.yml up -d 
+      - docker-compose -f deploy\docker-compose-kafka.yml up -d 
 
   install-migrate:
     desc: "Install the migrate tool"

@@ -24,6 +24,10 @@ func NewBrokerWriter(brokerAddresses []string, topic string) *BrokerWriter {
 	return &BrokerWriter{writer: writer}
 }
 
+func (b *BrokerWriter) Close() {
+	b.writer.Close()
+}
+
 func (b *BrokerWriter) WriteBatch(ticks []service.Tick) error {
 	log.Debugf("Got ticks from coinbase: %s", fmt.Sprintf("%v", ticks))
 

@@ -36,6 +36,10 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 	return &TicksRepository{db: db}, nil
 }
 
+func (r *TicksRepository) Close(){
+	r.db.Close()
+}
+
 type TickDataBaseDTO struct {
 	timestamp int64
 	symbol    string

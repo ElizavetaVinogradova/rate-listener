@@ -20,7 +20,12 @@ func NewBrokerReader(brokerAddresses []string, topic string) *BrokerReader {
 	}
 
 	reader := kafka.NewReader(config)
+	
 	return &BrokerReader{reader: reader}
+}
+
+func (b *BrokerReader) Close(){
+	b.reader.Close()
 }
 
 func (b *BrokerReader) ReadBatch() ([]service.Tick, error) {

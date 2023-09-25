@@ -24,7 +24,7 @@ func NewTickWriterService(ratesProvider RatesProvider, ratesBrokerWriter RatesBr
 	}
 }
 
-func (s *TickWriterService) RunToKafka() {
+func (s *TickWriterService) RunWritingToBroker() {
 	for {
 		ticks, err := s.ratesProvider.GetTicksBatch(s.batchSize)
 		if err != nil {
