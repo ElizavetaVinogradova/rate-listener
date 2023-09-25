@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"rates-listener/cmd"
-	"rates-listener/internal/brocker/kafka"
+	"rates-listener/internal/broker/kafka"
 	"rates-listener/internal/repo/mysql"
 	"rates-listener/internal/service"
 
