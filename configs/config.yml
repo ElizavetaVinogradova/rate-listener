@@ -1,4 +1,4 @@
-logLevel: "error"
+logLevel: "debug"
 
 db:
     username: "user"

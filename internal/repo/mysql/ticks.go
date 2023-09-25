@@ -36,11 +36,15 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 	return &TicksRepository{db: db}, nil
 }
 
+func (r *TicksRepository) Close(){
+	r.db.Close()
+}
+
 type TickDataBaseDTO struct {
 	timestamp int64
 	symbol    string
-	best_bid  float64
-	best_ask  float64
+	bestBid   float64
+	bestAsk   float64
 }
 
 func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
@@ -59,7 +63,7 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	defer stmt.Close()
 
 	for _, tickDB := range ticksDB {
-		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.best_bid, tickDB.best_ask)
+		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.bestBid, tickDB.bestAsk)
 		if err != nil {
 			return err
 		}
@@ -74,7 +78,7 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 }
 
 func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
-	var ticksDB []TickDataBaseDTO
+	ticksDB := make([]TickDataBaseDTO, 0, len(ticks))
 	for _, tick := range ticks {
 		ticksDB = append(ticksDB, mapTickToTicksDTO(tick))
 	}
@@ -85,7 +89,7 @@ func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	var tickDB TickDataBaseDTO
 	tickDB.timestamp = tick.Timestamp
 	tickDB.symbol = tick.Symbol
-	tickDB.best_bid = tick.Best_bid
-	tickDB.best_ask = tick.Best_ask
+	tickDB.bestBid = tick.BestBid
+	tickDB.bestAsk = tick.BestAsk
 	return tickDB
 }
