@@ -36,7 +36,7 @@ func (b *BrokerWriter) WriteBatch(ticks []service.Tick) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("Marshaled message for Kafka: %s", byteValue)
+	log.Debugf("marshaled message for Kafka: %s", byteValue)
 
 	message := kafka.Message{
 		Key:   byteKey,
@@ -45,7 +45,7 @@ func (b *BrokerWriter) WriteBatch(ticks []service.Tick) error {
 
 	err = b.writer.WriteMessages(context.Background(), message)
 	if err != nil {
-		return err
+		return fmt.Errorf("write message to Kafka: %w", err)
 	}
 	return nil
 }

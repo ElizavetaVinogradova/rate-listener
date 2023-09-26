@@ -2,6 +2,7 @@ package coinbase
 
 import (
 	"encoding/json"
+	"fmt"
 	"rates-listener/internal/service"
 	"strconv"
 	"time"
@@ -49,7 +50,7 @@ type Channel struct {
 func MarshalRequest(request RequestMessage) ([]byte, error) {
 	requestMsg, err := json.Marshal(request)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("marshall request to coinbase: %w", err)
 	}
 	return requestMsg, nil
 }
@@ -58,7 +59,7 @@ func UnmarshalResponse(message []byte) (TickClientDTO, error) {
 	var tickDTO TickClientDTO
 	err := json.Unmarshal(message, &tickDTO)
 	if err != nil {
-		return TickClientDTO{}, err
+		return TickClientDTO{}, fmt.Errorf("unmarshall request to coinbase: %w", err)
 	}
 	return tickDTO, nil
 }

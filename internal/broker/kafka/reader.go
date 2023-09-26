@@ -31,7 +31,7 @@ func (b *BrokerReader) Close(){
 func (b *BrokerReader) ReadBatch() ([]service.Tick, error) {
 	message, err := b.reader.ReadMessage(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read message from Kafka: %w", err)
 	}
 
 	kafkaDTOs, err := UnmarshalMessage(message.Value)

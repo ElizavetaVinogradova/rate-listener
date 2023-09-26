@@ -25,12 +25,12 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
 		config.Username, config.Password, config.Host, config.Port, config.DBName))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("open sql connection: %w", err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
 	return &TicksRepository{db: db}, nil
@@ -52,26 +52,26 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("begin transaction: %w", err)
 	}
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare("INSERT INTO ticks (timestamp, symbol, best_bid, best_ask) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		return err
+		return fmt.Errorf("prepare statement: %w", err)
 	}
 	defer stmt.Close()
 
 	for _, tickDB := range ticksDB {
 		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.bestBid, tickDB.bestAsk)
 		if err != nil {
-			return err
+			return fmt.Errorf("execute statement: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return fmt.Errorf("commit transaction: %w", err)
 	}
 
 	return nil

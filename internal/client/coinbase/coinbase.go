@@ -1,6 +1,7 @@
 package coinbase
 
 import (
+	"fmt"
 	"rates-listener/internal/service"
 
 	log "github.com/sirupsen/logrus"
@@ -37,12 +38,12 @@ func NewCoinBaseClient(url string) (*CoinBaseClient, error) {
 	err = conn.WriteMessage(websocket.TextMessage, requestMsg)
 	if err != nil {
 		conn.Close()
-		return &CoinBaseClient{}, err
+		return &CoinBaseClient{}, fmt.Errorf("write message to coinbase: %w", err)
 	}
 	_, _, err = conn.ReadMessage() //read and ignore the very first message with request info
 	if err != nil {
 		conn.Close()
-		return &CoinBaseClient{}, err
+		return &CoinBaseClient{}, fmt.Errorf("read the very first coinbase's message: %w", err)
 	}
 
 	return &CoinBaseClient{Conn: conn}, nil
@@ -51,7 +52,7 @@ func NewCoinBaseClient(url string) (*CoinBaseClient, error) {
 func (c *CoinBaseClient) readMessage() (TickClientDTO, error) {
 	messageType, message, err := c.Conn.ReadMessage()
 	if err != nil {
-		return TickClientDTO{}, err
+		return TickClientDTO{}, fmt.Errorf("read coinbase's message: %w", err)
 	}
 	log.Debugf("Received message type %d: %s", messageType, message)
 
