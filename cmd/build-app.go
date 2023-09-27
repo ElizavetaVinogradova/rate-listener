@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"rates-listener/internal/apiserver"
 	"rates-listener/internal/repo/mysql"
 
 	log "github.com/sirupsen/logrus"
@@ -43,5 +44,11 @@ func BuildMySqlConfig() mysql.Config {
 		Password: viper.GetString("db.password"),
 		DBName:   viper.GetString("db.dbname"),
 		SSLMode:  viper.GetString("db.sslmode"),
+	}
+}
+
+func BuildApiServerConfig() apiserver.Config {
+	return apiserver.Config{
+		BindAddress: viper.GetString("apiserver.bindAddress"),
 	}
 }

@@ -13,3 +13,6 @@ service:
 
 coinBaseClient:
     url: "wss://ws-feed.exchange.coinbase.com"
+
+apiserver:
+    bindAddress: 8080

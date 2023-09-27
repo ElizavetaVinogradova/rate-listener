@@ -36,7 +36,7 @@ func NewTickRepository(config Config) (*TicksRepository, error) {
 	return &TicksRepository{db: db}, nil
 }
 
-func (r *TicksRepository) Close(){
+func (r *TicksRepository) Close() {
 	r.db.Close()
 }
 
@@ -52,7 +52,7 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 
 	tx, err := r.db.Begin()
 	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
+		return fmt.Errorf("begin transaction create batch: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -65,16 +65,37 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	for _, tickDB := range ticksDB {
 		_, err := stmt.Exec(tickDB.timestamp, tickDB.symbol, tickDB.bestBid, tickDB.bestAsk)
 		if err != nil {
-			return fmt.Errorf("execute statement: %w", err)
+			return fmt.Errorf("execute create batch statement: %w", err)
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
+		return fmt.Errorf("commit create batch transaction: %w", err)
 	}
 
 	return nil
+}
+
+func (r *TicksRepository) GetTicksByTimestamp(timestamp int64) ([]service.Tick, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction to get batch: %w", err)
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare("SELECT * FROM ticks WHERE timestamp = ? ORDER BY timestamp")
+	if err != nil {
+		return nil, fmt.Errorf("prepare get batch statement: %w", err)
+	}
+	defer stmt.Close()
+
+	var ticksDTO []TickDataBaseDTO
+	stmt.Exec(&ticksDTO, timestamp)
+	if err != nil {
+		return nil, fmt.Errorf("execute get batch statement: %w", err)
+	}
+	return mapTickDTOSliceToTicksSlice(ticksDTO), nil
 }
 
 func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
@@ -92,4 +113,21 @@ func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	tickDB.bestBid = tick.BestBid
 	tickDB.bestAsk = tick.BestAsk
 	return tickDB
+}
+
+func mapTickDTOSliceToTicksSlice(ticksDB []TickDataBaseDTO) []service.Tick {
+	ticks := make([]service.Tick, 0, len(ticksDB))
+	for _, tickDB := range ticksDB {
+		ticks = append(ticks, mapTickDTOToTicks(tickDB))
+	}
+	return ticks
+}
+
+func mapTickDTOToTicks(tickDB TickDataBaseDTO) service.Tick {
+	var tick service.Tick
+	tick.Timestamp = tickDB.timestamp
+	tick.Symbol = tickDB.symbol
+	tick.BestBid = tickDB.bestBid
+	tick.BestAsk = tickDB.bestAsk
+	return tick
 }
