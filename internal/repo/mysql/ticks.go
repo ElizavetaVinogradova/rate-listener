@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 )
 
 type TicksRepository struct {
@@ -41,10 +42,11 @@ func (r *TicksRepository) Close() {
 }
 
 type TickDataBaseDTO struct {
-	timestamp int64
-	symbol    string
-	bestBid   float64
-	bestAsk   float64
+	id        int64  `json:"id"`
+	timestamp int64 `json:"timestamp"`
+	symbol    string `json:"symbol"`
+	bestBid   float64 `json:"best_bid"`
+	bestAsk   float64  `json:"best_ask"`
 }
 
 func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
@@ -77,26 +79,22 @@ func (r *TicksRepository) CreateBatch(ticks []service.Tick) error {
 	return nil
 }
 
-func (r *TicksRepository) GetTicksByTimestamp(timestamp int64) ([]service.Tick, error) {
-	tx, err := r.db.Begin()
-	if err != nil {
-		return nil, fmt.Errorf("begin transaction to get batch: %w", err)
-	}
-	defer tx.Rollback()
+func (r *TicksRepository) GetTickById(id int64) (service.Tick, error) {
+	query := "SELECT * FROM ticks WHERE id = ?"
 
-	stmt, err := tx.Prepare("SELECT * FROM ticks WHERE timestamp = ? ORDER BY timestamp")
+	var tickDTO TickDataBaseDTO
+	err := r.db.Get(&tickDTO, query, id)
+	log.Debugf("================statement got data : %s , id: %d", fmt.Sprintf("%v", tickDTO), id)
 	if err != nil {
-		return nil, fmt.Errorf("prepare get batch statement: %w", err)
+		return service.Tick{}, fmt.Errorf("execute get statement: %w", err)
 	}
-	defer stmt.Close()
-
-	var ticksDTO []TickDataBaseDTO
-	stmt.Exec(&ticksDTO, timestamp)
-	if err != nil {
-		return nil, fmt.Errorf("execute get batch statement: %w", err)
-	}
-	return mapTickDTOSliceToTicksSlice(ticksDTO), nil
+	
+	tick := mapTickDTOToTick(tickDTO)
+	log.Debugf("================mapped DB tick to service tick : %s", fmt.Sprintf("%v", tick))
+	return tick, nil
 }
+
+
 
 func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
 	ticksDB := make([]TickDataBaseDTO, 0, len(ticks))
@@ -108,6 +106,7 @@ func mapTickSliceToTicksDTOSlice(ticks []service.Tick) []TickDataBaseDTO {
 
 func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 	var tickDB TickDataBaseDTO
+	tickDB.id = tick.Id	
 	tickDB.timestamp = tick.Timestamp
 	tickDB.symbol = tick.Symbol
 	tickDB.bestBid = tick.BestBid
@@ -118,12 +117,12 @@ func mapTickToTicksDTO(tick service.Tick) TickDataBaseDTO {
 func mapTickDTOSliceToTicksSlice(ticksDB []TickDataBaseDTO) []service.Tick {
 	ticks := make([]service.Tick, 0, len(ticksDB))
 	for _, tickDB := range ticksDB {
-		ticks = append(ticks, mapTickDTOToTicks(tickDB))
+		ticks = append(ticks, mapTickDTOToTick(tickDB))
 	}
 	return ticks
 }
 
-func mapTickDTOToTicks(tickDB TickDataBaseDTO) service.Tick {
+func mapTickDTOToTick(tickDB TickDataBaseDTO) service.Tick {
 	var tick service.Tick
 	tick.Timestamp = tickDB.timestamp
 	tick.Symbol = tickDB.symbol

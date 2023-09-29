@@ -8,10 +8,6 @@ type RatesBrokerReader interface {
 	ReadBatch() ([]Tick, error)
 }
 
-type RatesRepository interface {
-	CreateBatch(ticks []Tick) error
-}
-
 type TickReaderService struct {
 	ratesBrokerReader RatesBrokerReader
 	ratesRepository   RatesRepository
